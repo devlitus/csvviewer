@@ -9,6 +9,7 @@ export interface CSVFile {
 export interface CSVParseResult {
   data: Record<string, string>[];
   rowCount: number;
+  delimiter?: string;
   error?: string;
 }
 

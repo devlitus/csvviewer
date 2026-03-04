@@ -20,6 +20,7 @@ export const FILENAME_SELECTOR = "[data-filename]";
 // Toolbar
 export const SHOWING_ROWS_SELECTOR = "[data-showing-rows]";
 export const TOTAL_RECORDS_SELECTOR = "[data-total-records]";
+export const DELIMITER_BADGE_SELECTOR = "[data-delimiter-badge]";
 
 // Pagination
 export const PAGINATION_CONTAINER_SELECTOR = "[data-pagination-container]";

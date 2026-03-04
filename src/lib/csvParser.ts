@@ -1,12 +1,35 @@
 import type { CSVParseResult } from "./types";
 
-export function parseCSVString(content: string): CSVParseResult {
+const SUPPORTED_DELIMITERS = [",", ";", "\t"] as const;
+
+export function detectDelimiter(content: string): string {
+  const firstLine = content.split(/\r?\n/)[0] ?? "";
+
+  let bestDelimiter = ",";
+  let bestCount = 0;
+
+  for (const delimiter of SUPPORTED_DELIMITERS) {
+    const count = firstLine.split(delimiter).length - 1;
+    if (count > bestCount) {
+      bestCount = count;
+      bestDelimiter = delimiter;
+    }
+  }
+
+  return bestDelimiter;
+}
+
+export function parseCSVString(
+  content: string,
+  delimiter?: string
+): CSVParseResult {
   try {
     if (!content.trim()) {
       return { data: [], rowCount: 0, error: "File is empty" };
     }
 
-    const lines = parseCSVLines(content.trim());
+    const resolvedDelimiter = delimiter ?? detectDelimiter(content);
+    const lines = parseCSVLines(content.trim(), resolvedDelimiter);
     if (lines.length < 2) {
       return { data: [], rowCount: 0, error: "No data rows found" };
     }
@@ -23,7 +46,7 @@ export function parseCSVString(content: string): CSVParseResult {
       data.push(row);
     }
 
-    return { data, rowCount: data.length };
+    return { data, rowCount: data.length, delimiter: resolvedDelimiter };
   } catch (err) {
     return {
       data: [],
@@ -33,7 +56,7 @@ export function parseCSVString(content: string): CSVParseResult {
   }
 }
 
-function parseCSVLines(text: string): string[][] {
+function parseCSVLines(text: string, delimiter: string): string[][] {
   const results: string[][] = [];
   let current = "";
   let inQuotes = false;
@@ -55,7 +78,7 @@ function parseCSVLines(text: string): string[][] {
     } else {
       if (char === '"') {
         inQuotes = true;
-      } else if (char === ",") {
+      } else if (char === delimiter) {
         row.push(current.trim());
         current = "";
       } else if (char === "\r" && next === "\n") {

@@ -9,6 +9,7 @@ export interface LoadSuccess {
   columns: string[];
   rows: Record<string, string>[];
   rowCount: number;
+  delimiter: string;
 }
 
 export interface LoadFailure {
@@ -108,6 +109,7 @@ export async function loadAndParseFile(
       columns: Object.keys(firstRow),
       rows: parseResult.data,
       rowCount: parseResult.rowCount,
+      delimiter: parseResult.delimiter ?? ",",
     };
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : "Unknown error";

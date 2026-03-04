@@ -110,7 +110,7 @@ async function initVisualizerPage(): Promise<void> {
     }
 
     // Store data
-    dataStore.setData(result.file, result.columns, result.rows);
+    dataStore.setData(result.file, result.columns, result.rows, result.delimiter);
     paginationManager.setTotalRows(result.rowCount);
     columnVisibilityManager.initFromColumns(result.columns);
 
@@ -152,6 +152,7 @@ function renderUI(): void {
   const [startIndex, endIndex] = paginationManager.getPageRange();
   const totalPages = paginationManager.getTotalPages();
   const totalRows = dataStore.getTotalRows();
+  const delimiter = dataStore.getDelimiter();
 
   // Render header
   headerRenderer.updateFilename(filename);
@@ -167,6 +168,7 @@ function renderUI(): void {
     displayEnd === 0 ? 0 : showingRows,
     totalRows
   );
+  toolbarRenderer.updateDelimiter(delimiter);
 
   // Render pagination
   paginationRenderer.update(currentPage, totalPages);
