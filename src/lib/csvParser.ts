@@ -1,12 +1,60 @@
-import type { CSVParseResult } from "./types";
+import type { CSVParseResult, SupportedDelimiter } from "./types";
+import { SUPPORTED_DELIMITERS } from "./types";
 
-export function parseCSVString(content: string): CSVParseResult {
+/**
+ * Counts delimiter occurrences outside of quoted fields.
+ * Note: does not handle escaped quotes ("") as it's only used
+ * for delimiter detection (column counting), not value parsing.
+ */
+function countDelimiterOutsideQuotes(line: string, delimiter: string): number {
+  let count = 0;
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (!inQuotes && char === delimiter) {
+      count++;
+    }
+  }
+  return count;
+}
+
+export function detectDelimiter(content: string): SupportedDelimiter {
+  const firstLine = content.split(/\r?\n/)[0] ?? "";
+
+  let bestDelimiter: SupportedDelimiter = ",";
+  let bestCount = 0;
+
+  for (const delimiter of SUPPORTED_DELIMITERS) {
+    const count = countDelimiterOutsideQuotes(firstLine, delimiter);
+    if (count > bestCount) {
+      bestCount = count;
+      bestDelimiter = delimiter;
+    }
+  }
+
+  if (bestCount === 0) {
+    console.warn("[csvParser] No delimiter detected in first line, defaulting to ','");
+  }
+
+  return bestDelimiter;
+}
+
+export function parseCSVString(
+  content: string,
+  delimiter?: SupportedDelimiter
+): CSVParseResult {
   try {
-    if (!content.trim()) {
+    // Remove BOM if present (must be done before checking if empty)
+    const cleanContent = content.charCodeAt(0) === 0xFEFF ? content.slice(1) : content;
+
+    if (!cleanContent.trim()) {
       return { data: [], rowCount: 0, error: "File is empty" };
     }
 
-    const lines = parseCSVLines(content.trim());
+    const resolvedDelimiter = delimiter ?? detectDelimiter(cleanContent);
+    const lines = parseCSVLines(cleanContent.trim(), resolvedDelimiter);
     if (lines.length < 2) {
       return { data: [], rowCount: 0, error: "No data rows found" };
     }
@@ -23,7 +71,7 @@ export function parseCSVString(content: string): CSVParseResult {
       data.push(row);
     }
 
-    return { data, rowCount: data.length };
+    return { data, rowCount: data.length, delimiter: resolvedDelimiter };
   } catch (err) {
     return {
       data: [],
@@ -33,7 +81,7 @@ export function parseCSVString(content: string): CSVParseResult {
   }
 }
 
-function parseCSVLines(text: string): string[][] {
+function parseCSVLines(text: string, delimiter: string): string[][] {
   const results: string[][] = [];
   let current = "";
   let inQuotes = false;
@@ -55,7 +103,7 @@ function parseCSVLines(text: string): string[][] {
     } else {
       if (char === '"') {
         inQuotes = true;
-      } else if (char === ",") {
+      } else if (char === delimiter) {
         row.push(current.trim());
         current = "";
       } else if (char === "\r" && next === "\n") {

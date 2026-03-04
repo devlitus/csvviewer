@@ -1,4 +1,4 @@
-import type { CSVFile } from "../../../lib/types";
+import type { CSVFile, CSVParseResult, SupportedDelimiter } from "../../../lib/types";
 import { getFile } from "../../../lib/indexeddb";
 import { parseCSVString } from "../../../lib/csvParser";
 import { CONFIG } from "../config";
@@ -9,6 +9,7 @@ export interface LoadSuccess {
   columns: string[];
   rows: Record<string, string>[];
   rowCount: number;
+  delimiter: SupportedDelimiter;
 }
 
 export interface LoadFailure {
@@ -59,7 +60,7 @@ export async function loadAndParseFile(
     }
 
     // 4. Parse CSV
-    let parseResult;
+    let parseResult: CSVParseResult;
     try {
       parseResult = parseCSVString(file.content);
     } catch (parseErr) {
@@ -108,6 +109,7 @@ export async function loadAndParseFile(
       columns: Object.keys(firstRow),
       rows: parseResult.data,
       rowCount: parseResult.rowCount,
+      delimiter: parseResult.delimiter as SupportedDelimiter, // parseCSVString() always sets delimiter on success; optional in type for error paths
     };
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : "Unknown error";

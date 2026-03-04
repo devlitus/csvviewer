@@ -8,7 +8,7 @@ interface Props {
   totalRecords?: number;
 }
 
-const { showingRows = 50, totalRecords = 12403 } = Astro.props as Props;
+const { showingRows = 0, totalRecords = 0 } = Astro.props as Props;
 ---
 
 <div
@@ -31,6 +31,15 @@ const { showingRows = 50, totalRecords = 12403 } = Astro.props as Props;
     data-toolbar-counters
     class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0"
   >
+    <!-- Delimiter Badge -->
+    <div
+      class="px-3 py-2 rounded-md bg-surface-card border border-border-dark text-xs font-medium text-text-light-gray text-center sm:text-left whitespace-nowrap"
+      title="Detected delimiter"
+    >
+      <span class="sr-only">Delimiter:</span>
+      <span data-delimiter-badge role="status" aria-live="polite">Comma (,)</span>
+    </div>
+
     <ColumnFilterInput />
     <FilterButton />
     <ExportButton />
