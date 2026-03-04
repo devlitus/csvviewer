@@ -1,3 +1,6 @@
+export const SUPPORTED_DELIMITERS = [",", ";", "\t"] as const;
+export type SupportedDelimiter = (typeof SUPPORTED_DELIMITERS)[number];
+
 export interface CSVFile {
   id: string;
   filename: string;
@@ -9,7 +12,7 @@ export interface CSVFile {
 export interface CSVParseResult {
   data: Record<string, string>[];
   rowCount: number;
-  delimiter?: string;
+  delimiter?: SupportedDelimiter;
   error?: string;
 }
 

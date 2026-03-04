@@ -1,11 +1,11 @@
-import type { CSVFile } from "../../../lib/types";
+import type { CSVFile, SupportedDelimiter } from "../../../lib/types";
 
 export interface DataState {
   file: CSVFile | null;
   columns: string[];
   rows: Record<string, string>[];
   totalRows: number;
-  delimiter: string;
+  delimiter: SupportedDelimiter;
 }
 
 /**
@@ -32,7 +32,7 @@ export class DataStore {
     file: CSVFile,
     columns: string[],
     rows: Record<string, string>[],
-    delimiter: string = ","
+    delimiter: SupportedDelimiter = ","
   ): void {
     this.state = {
       file,
@@ -84,9 +84,9 @@ export class DataStore {
 
   /**
    * Get delimiter used for the loaded CSV.
-   * @returns Delimiter string (default: ",")
+   * @returns Delimiter (default: ",")
    */
-  getDelimiter(): string {
+  getDelimiter(): SupportedDelimiter {
     return this.state.delimiter;
   }
 

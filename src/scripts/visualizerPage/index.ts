@@ -80,11 +80,6 @@ async function initVisualizerPage(): Promise<void> {
   isInitializing = true;
 
   try {
-    // Cleanup previous initialization if any (defensive against double-init from ViewTransitions)
-    if (columnVisibilityEvents) {
-      cleanup();
-    }
-
     // Instantiate managers
     dataStore = new DataStore();
     paginationManager = new PaginationManager(CONFIG.DEFAULT_ROWS_PER_PAGE);
@@ -411,7 +406,7 @@ function cleanup(): void {
     console.log("[VisualizerPage] Cleaning up...");
   }
 
-  // Cleanup event managers
+  // Event managers require explicit cleanup; renderers and uiState are stateless.
   paginationEvents?.cleanup();
   rowsPerPageEvents?.cleanup();
   columnVisibilityEvents?.cleanup();

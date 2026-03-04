@@ -1,7 +1,5 @@
-import type { CSVParseResult } from "./types";
-
-export const SUPPORTED_DELIMITERS = [",", ";", "\t"] as const;
-export type SupportedDelimiter = (typeof SUPPORTED_DELIMITERS)[number];
+import type { CSVParseResult, SupportedDelimiter } from "./types";
+import { SUPPORTED_DELIMITERS } from "./types";
 
 /**
  * Counts delimiter occurrences outside of quoted fields.

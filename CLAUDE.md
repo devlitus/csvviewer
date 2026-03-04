@@ -334,6 +334,47 @@ Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 - Client scripts en `src/scripts/` para lógica interactiva
 - Explicit typing en TypeScript
 
+## Pipeline de Agentes
+
+Flujo obligatorio para implementar cualquier feature o corrección no trivial:
+
+```
+1. planner    → genera el plan en docs/
+2. implementer → ejecuta el plan
+3. code-reviewer → revisa el código
+4. implementer → corrige los issues encontrados
+5. code-reviewer → re-revisa
+   ... repetir pasos 4-5 hasta que code-reviewer declare "listo para merge"
+6. commit + PR
+```
+
+### Agentes disponibles
+
+| Agente | Cuándo usarlo |
+|--------|--------------|
+| `planner` | Planificar features, refactors y decisiones de arquitectura. **Nunca escribe código.** |
+| `implementer` | Ejecutar un plan paso a paso o corregir issues del code-reviewer |
+| `code-reviewer` | Revisar código implementado: correctitud, tipos, seguridad, patrones |
+
+### Reglas del pipeline
+
+- **Siempre planificar antes de implementar** features no triviales — el planner genera el doc en `docs/`
+- **Nunca hacer merge sin al menos un code-review** que declare el código listo
+- **El code-reviewer itera con el implementer** hasta cero issues CRÍTICOS y ALTOS
+- Los issues MEDIO y BAJO pueden quedar como deuda técnica documentada si no bloquean funcionalidad
+- Después del último code-review aprobado: **commit + PR**
+
+### Ejemplo de invocación
+
+```
+"usa planner para planificar X"
+"usa implementer para implementar el plan"
+"usa code-reviewer para revisar"
+"usa implementer para corregir los issues"
+"usa code-reviewer para revisar"   ← repetir hasta aprobación
+"commit y PR"
+```
+
 ## Debugging
 
 ```bash
@@ -359,5 +400,5 @@ pnpm preview        # Previsualizar build
 
 ---
 
-**Última actualización:** 31/01/2026
+**Última actualización:** 04/03/2026
 **Consulta `docs/README.md` antes de empezar cualquier tarea.**
