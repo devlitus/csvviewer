@@ -1,4 +1,4 @@
-import type { CSVFile } from "../../../lib/types";
+import type { CSVFile, CSVParseResult } from "../../../lib/types";
 import { getFile } from "../../../lib/indexeddb";
 import { parseCSVString } from "../../../lib/csvParser";
 import { CONFIG } from "../config";
@@ -60,7 +60,7 @@ export async function loadAndParseFile(
     }
 
     // 4. Parse CSV
-    let parseResult;
+    let parseResult: CSVParseResult;
     try {
       parseResult = parseCSVString(file.content);
     } catch (parseErr) {
@@ -109,7 +109,7 @@ export async function loadAndParseFile(
       columns: Object.keys(firstRow),
       rows: parseResult.data,
       rowCount: parseResult.rowCount,
-      delimiter: parseResult.delimiter ?? ",",
+      delimiter: parseResult.delimiter ?? ",", // defensive fallback, delimiter is always set on success
     };
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : "Unknown error";

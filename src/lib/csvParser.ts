@@ -1,6 +1,21 @@
 import type { CSVParseResult } from "./types";
 
-const SUPPORTED_DELIMITERS = [",", ";", "\t"] as const;
+export const SUPPORTED_DELIMITERS = [",", ";", "\t"] as const;
+export type SupportedDelimiter = (typeof SUPPORTED_DELIMITERS)[number];
+
+function countDelimiterOutsideQuotes(line: string, delimiter: string): number {
+  let count = 0;
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (!inQuotes && char === delimiter) {
+      count++;
+    }
+  }
+  return count;
+}
 
 export function detectDelimiter(content: string): string {
   const firstLine = content.split(/\r?\n/)[0] ?? "";
@@ -9,11 +24,15 @@ export function detectDelimiter(content: string): string {
   let bestCount = 0;
 
   for (const delimiter of SUPPORTED_DELIMITERS) {
-    const count = firstLine.split(delimiter).length - 1;
+    const count = countDelimiterOutsideQuotes(firstLine, delimiter);
     if (count > bestCount) {
       bestCount = count;
       bestDelimiter = delimiter;
     }
+  }
+
+  if (bestCount === 0) {
+    console.warn("[csvParser] No delimiter detected in first line, defaulting to ','");
   }
 
   return bestDelimiter;
@@ -28,8 +47,11 @@ export function parseCSVString(
       return { data: [], rowCount: 0, error: "File is empty" };
     }
 
-    const resolvedDelimiter = delimiter ?? detectDelimiter(content);
-    const lines = parseCSVLines(content.trim(), resolvedDelimiter);
+    // Remove BOM if present
+    const cleanContent = content.charCodeAt(0) === 0xFEFF ? content.slice(1) : content;
+
+    const resolvedDelimiter = delimiter ?? detectDelimiter(cleanContent);
+    const lines = parseCSVLines(cleanContent.trim(), resolvedDelimiter);
     if (lines.length < 2) {
       return { data: [], rowCount: 0, error: "No data rows found" };
     }
