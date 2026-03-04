@@ -41,6 +41,13 @@ import { UIStateManager } from "./ui";
 import { loadAndParseFile, exportToCSV } from "./utils";
 import { CONFIG } from "./config";
 import { onPageLoad, onBeforeSwap } from "../../lib/pageInit";
+import {
+  COLUMN_VISIBILITY_DROPDOWN,
+  COLUMN_VISIBILITY_TRIGGER,
+  EXPORT_DROPDOWN,
+  EXPORT_TRIGGER,
+  TABLE_CONTAINER_SELECTOR,
+} from "./utils/domSelectors";
 
 // Initialization flag to prevent race conditions from concurrent async calls
 let isInitializing = false;
@@ -73,6 +80,11 @@ async function initVisualizerPage(): Promise<void> {
   isInitializing = true;
 
   try {
+    // Cleanup previous initialization if any (defensive against double-init from ViewTransitions)
+    if (columnVisibilityEvents) {
+      cleanup();
+    }
+
     // Instantiate managers
     dataStore = new DataStore();
     paginationManager = new PaginationManager(CONFIG.DEFAULT_ROWS_PER_PAGE);
@@ -208,10 +220,10 @@ function setupEvents(): void {
   // Column visibility events
   columnVisibilityEvents.onTriggerClick(() => {
     const dropdown = document.querySelector(
-      "[data-column-visibility-dropdown]"
+      COLUMN_VISIBILITY_DROPDOWN
     ) as HTMLElement | null;
     const trigger = document.querySelector(
-      "[data-column-visibility-trigger]"
+      COLUMN_VISIBILITY_TRIGGER
     ) as HTMLButtonElement | null;
     if (dropdown && trigger) {
       dropdown.classList.toggle("hidden");
@@ -261,10 +273,10 @@ function setupEvents(): void {
 
   columnVisibilityEvents.onClickOutside(() => {
     const dropdown = document.querySelector(
-      "[data-column-visibility-dropdown]"
+      COLUMN_VISIBILITY_DROPDOWN
     ) as HTMLElement | null;
     const trigger = document.querySelector(
-      "[data-column-visibility-trigger]"
+      COLUMN_VISIBILITY_TRIGGER
     ) as HTMLButtonElement | null;
     if (dropdown && trigger && !dropdown.classList.contains("hidden")) {
       dropdown.classList.add("hidden");
@@ -274,10 +286,10 @@ function setupEvents(): void {
 
   columnVisibilityEvents.onEscapeKey(() => {
     const dropdown = document.querySelector(
-      "[data-column-visibility-dropdown]"
+      COLUMN_VISIBILITY_DROPDOWN
     ) as HTMLElement | null;
     const trigger = document.querySelector(
-      "[data-column-visibility-trigger]"
+      COLUMN_VISIBILITY_TRIGGER
     ) as HTMLButtonElement | null;
     if (dropdown && trigger && !dropdown.classList.contains("hidden")) {
       dropdown.classList.add("hidden");
@@ -288,10 +300,10 @@ function setupEvents(): void {
   // Export events
   exportEvents.onTriggerClick(() => {
     const dropdown = document.querySelector(
-      "[data-export-dropdown]"
+      EXPORT_DROPDOWN
     ) as HTMLElement | null;
     const trigger = document.querySelector(
-      "[data-export-trigger]"
+      EXPORT_TRIGGER
     ) as HTMLButtonElement | null;
     if (dropdown && trigger) {
       dropdown.classList.toggle("hidden");
@@ -308,10 +320,10 @@ function setupEvents(): void {
 
     // Close dropdown
     const dropdown = document.querySelector(
-      "[data-export-dropdown]"
+      EXPORT_DROPDOWN
     ) as HTMLElement | null;
     const trigger = document.querySelector(
-      "[data-export-trigger]"
+      EXPORT_TRIGGER
     ) as HTMLButtonElement | null;
     if (dropdown && trigger) {
       dropdown.classList.add("hidden");
@@ -332,10 +344,10 @@ function setupEvents(): void {
 
     // Close dropdown
     const dropdown = document.querySelector(
-      "[data-export-dropdown]"
+      EXPORT_DROPDOWN
     ) as HTMLElement | null;
     const trigger = document.querySelector(
-      "[data-export-trigger]"
+      EXPORT_TRIGGER
     ) as HTMLButtonElement | null;
     if (dropdown && trigger) {
       dropdown.classList.add("hidden");
@@ -345,10 +357,10 @@ function setupEvents(): void {
 
   exportEvents.onClickOutside(() => {
     const dropdown = document.querySelector(
-      "[data-export-dropdown]"
+      EXPORT_DROPDOWN
     ) as HTMLElement | null;
     const trigger = document.querySelector(
-      "[data-export-trigger]"
+      EXPORT_TRIGGER
     ) as HTMLButtonElement | null;
     if (dropdown && trigger && !dropdown.classList.contains("hidden")) {
       dropdown.classList.add("hidden");
@@ -358,10 +370,10 @@ function setupEvents(): void {
 
   exportEvents.onEscapeKey(() => {
     const dropdown = document.querySelector(
-      "[data-export-dropdown]"
+      EXPORT_DROPDOWN
     ) as HTMLElement | null;
     const trigger = document.querySelector(
-      "[data-export-trigger]"
+      EXPORT_TRIGGER
     ) as HTMLButtonElement | null;
     if (dropdown && trigger && !dropdown.classList.contains("hidden")) {
       dropdown.classList.add("hidden");
@@ -382,7 +394,7 @@ function rerenderAfterPageChange(): void {
  * Scroll to table after pagination change
  */
 function scrollToTable(): void {
-  const table = document.querySelector("[data-csv-table-container]");
+  const table = document.querySelector(TABLE_CONTAINER_SELECTOR);
   if (table) {
     table.scrollIntoView({
       behavior: CONFIG.SCROLL_BEHAVIOR,

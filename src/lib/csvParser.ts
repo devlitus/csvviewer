@@ -3,6 +3,11 @@ import type { CSVParseResult } from "./types";
 export const SUPPORTED_DELIMITERS = [",", ";", "\t"] as const;
 export type SupportedDelimiter = (typeof SUPPORTED_DELIMITERS)[number];
 
+/**
+ * Counts delimiter occurrences outside of quoted fields.
+ * Note: does not handle escaped quotes ("") as it's only used
+ * for delimiter detection (column counting), not value parsing.
+ */
 function countDelimiterOutsideQuotes(line: string, delimiter: string): number {
   let count = 0;
   let inQuotes = false;
@@ -17,10 +22,10 @@ function countDelimiterOutsideQuotes(line: string, delimiter: string): number {
   return count;
 }
 
-export function detectDelimiter(content: string): string {
+export function detectDelimiter(content: string): SupportedDelimiter {
   const firstLine = content.split(/\r?\n/)[0] ?? "";
 
-  let bestDelimiter = ",";
+  let bestDelimiter: SupportedDelimiter = ",";
   let bestCount = 0;
 
   for (const delimiter of SUPPORTED_DELIMITERS) {
@@ -40,15 +45,15 @@ export function detectDelimiter(content: string): string {
 
 export function parseCSVString(
   content: string,
-  delimiter?: string
+  delimiter?: SupportedDelimiter
 ): CSVParseResult {
   try {
-    if (!content.trim()) {
+    // Remove BOM if present (must be done before checking if empty)
+    const cleanContent = content.charCodeAt(0) === 0xFEFF ? content.slice(1) : content;
+
+    if (!cleanContent.trim()) {
       return { data: [], rowCount: 0, error: "File is empty" };
     }
-
-    // Remove BOM if present
-    const cleanContent = content.charCodeAt(0) === 0xFEFF ? content.slice(1) : content;
 
     const resolvedDelimiter = delimiter ?? detectDelimiter(cleanContent);
     const lines = parseCSVLines(cleanContent.trim(), resolvedDelimiter);

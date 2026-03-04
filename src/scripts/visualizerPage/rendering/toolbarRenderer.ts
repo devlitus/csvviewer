@@ -5,6 +5,15 @@ import {
 } from "../utils/domSelectors";
 
 /**
+ * Display names for supported delimiters
+ */
+const DELIMITER_DISPLAY_NAMES: Record<string, string> = {
+  ",": "Comma (,)",
+  ";": "Semicolon (;)",
+  "\t": "Tab",
+};
+
+/**
  * Updates toolbar counters (showing X rows from Y total) and delimiter badge.
  */
 export class ToolbarRenderer {
@@ -54,17 +63,7 @@ export class ToolbarRenderer {
   updateDelimiter(delimiter: string): void {
     if (!this.delimiterElement) return;
 
-    let displayText = "";
-    if (delimiter === ",") {
-      displayText = "Comma (,)";
-    } else if (delimiter === ";") {
-      displayText = "Semicolon (;)";
-    } else if (delimiter === "\t") {
-      displayText = "Tab";
-    } else {
-      displayText = delimiter;
-    }
-
+    const displayText = DELIMITER_DISPLAY_NAMES[delimiter] ?? delimiter;
     this.delimiterElement.textContent = displayText;
   }
 }
